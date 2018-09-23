@@ -38,10 +38,7 @@ def key_pressed():  # control the app.
         exit()
 
 
-# right now im deciding if drawing the cube should be done by a function or a class.
-# and class sounds a lot better,, cuz then a second instance could show pervious steps,
-# while the first is still linked to the engine
-# and I will probably also want a seprate file.
+# cleanup time
 
 
 def mouse_wheel(event):
