@@ -1,18 +1,72 @@
 from p5 import *
 import time as t
-#import giiker_engine as engine
+# import giiker_engine as engine
 
 RAD90 = 1.5707963267948966
 RAD180 = 3.141592653589793
 
 
 class CubeDef:
-    def __init__(self, _tile_size=100, _gap_size=10):
+    def __init__(self, _tile_size=100, _gap_size=10, _sub_disable=True):
+        # sub_disable True-Can disable a face on it's own, False-Can enable a face on it's own
         self.tile_size = _tile_size
         self.gap_size = _gap_size
+        self.sub_disable = _sub_disable
+        self.sub_config = [True, True, True, True, True, True]
+
+        # A boolean for each face.
+        # faces are through 1-6
+        # 1 - BLUE
+        # 2 - YELLOW
+        # 3 - RED
+        # 4 - WHITE
+        # 5 - PINK
+        # 6 - GREEN
+
+    # animation support will require being able to turn faces of the cube on and of
+    # the best way to do this is to define a variable keeping what faces are active
+    # and then toggle pieces properly.
+
+    # also there needs to be a check if this system is to be used for disabling or enabling pieces of cube.
 
     def build(self):
-        self._draw_corner("BLUE", "GREEN", "WHITE")
+        # as a first step let's draw the whole cube, then add more features.
+
+        self._draw_corner("WHITE", "GREEN", "BLUE")
+
+
+        # self._draw_corner("WHITE", "WHITE", "WHITE")
+        # self._draw_corner("WHITE", "WHITE", "WHITE")
+        # self._draw_corner("WHITE", "WHITE", "WHITE")
+        # self._draw_corner("WHITE", "WHITE", "WHITE")
+        # self._draw_corner("WHITE", "WHITE", "WHITE")
+        # self._draw_corner("WHITE", "WHITE", "WHITE")
+        # self._draw_corner("WHITE", "WHITE", "WHITE")
+        #
+        # self._draw_edge("WHITE", "WHITE")
+        # self._draw_edge("WHITE", "WHITE")
+        # self._draw_edge("WHITE", "WHITE")
+        # self._draw_edge("WHITE", "WHITE")
+        # self._draw_edge("WHITE", "WHITE")
+        # self._draw_edge("WHITE", "WHITE")
+        # self._draw_edge("WHITE", "WHITE")
+        # self._draw_edge("WHITE", "WHITE")
+        # self._draw_edge("WHITE", "WHITE")
+        # self._draw_edge("WHITE", "WHITE")
+        # self._draw_edge("WHITE", "WHITE")
+        # self._draw_edge("WHITE", "WHITE")
+        #
+        # self._draw_surface("WHITE")
+        # self._draw_surface("WHITE")
+        # self._draw_surface("WHITE")
+        # self._draw_surface("WHITE")
+        # self._draw_surface("WHITE")
+
+
+        #
+
+
+
 
     def draw(self):
         color_backup = renderer.fill_color
@@ -43,10 +97,10 @@ class CubeDef:
         else:
             raise NameError("color_name must be one of: \n BLUE, YELLOW, RED, WHITE, PINK, GREEN")
 
-    def _draw_surface(self, color="WHITE"):
+    def _draw_surface(self, color1="WHITE"):
         with push_matrix():
             translate(0, 0, self.tile_size//2)
-            Zorder.add(square, ((0, 0), self.tile_size, 'CENTER'), (0, 0, 0), self.get_color_region(color))
+            Zorder.add(square, ((0, 0), self.tile_size, 'CENTER'), (0, 0, 0), self.get_color_region(color1))
             # square((0, 0), self.tile_size, 'CENTER')
 
     def _draw_edge(self, color1, color2):

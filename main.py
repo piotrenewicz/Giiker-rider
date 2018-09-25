@@ -58,8 +58,8 @@ def mouse_moved(event):
         global _pmouse_y
         rot_x += event.x - _pmouse_x
         rot_y += event.y - _pmouse_y
-        _pmouse_x = event.x
-        _pmouse_y = event.y
+    _pmouse_x = event.x
+    _pmouse_y = event.y
 
 
 run()  # spawn the window
