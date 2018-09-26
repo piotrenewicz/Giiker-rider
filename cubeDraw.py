@@ -33,7 +33,7 @@ class CubeDef:
 
     # also there needs to be a check if this system is to be used for disabling or enabling pieces of cube.
 
-    def draw(self, x=width/2, y=height/2, z=0, rot_x=20, rot_y=20, rot_z=20):
+    def draw(self, x, y, z=0, rot_x=20, rot_y=20, rot_z=20):
         with push_matrix():
             translate(x, y, z)
             rotate_x(radians(rot_x))
@@ -42,11 +42,12 @@ class CubeDef:
 
             color_backup = renderer.fill_color
             self.Buff.set()
-            Zorder.order()
-            Zorder.flush()
-            fill(color_backup)
+        reset_matrix()
+        Zorder.order()
+        Zorder.flush()
+        renderer.fill_color = color_backup
 
-    def build(self, state3D: engine.cube.state3D):
+    def build(self, s3D: engine.cube.state3D):
         self.Buff.cls()
 
         def _is_allowed(side: tuple):
@@ -87,75 +88,99 @@ class CubeDef:
                     elif corner.orientation == 1:
                         self._draw_corner(corner.side_side, corner.top_side, corner.primary_side)
 
-        def _dual_edge(e1: tuple, e2: tuple):
+        def _dual_edge(slice):
             with push_matrix():
-                _edge(e1)
+                _edge(slice[2])
                 rotate_z(RAD180)
-                _edge(e2)
+                _edge(slice[0])
 
-        def _quad_edge(e1: tuple, e2: tuple, e3: tuple, e4: tuple):
+        def _pink_quad_edge(slice):
             with push_matrix():
-                _dual_edge(e1, e3)
-                rotate_z(RAD90)
-                _dual_edge(e2, e4)
+                _dual_edge(slice[1, :])
+                rotate_z(-RAD90)
+                _dual_edge(slice[:, 1])
 
-        def _quad_corner(e1: tuple, e2: tuple, e3: tuple, e4: tuple, ):
+        def _red_quad_edge(slice):
             with push_matrix():
-                _corner(e1)
+                _dual_edge(slice[1, ::-1])
+                rotate_z(-RAD90)
+                _dual_edge(slice[:, 1])
+
+        def _blue_quad_corner(slice):
+            with push_matrix():
+                _corner(slice[0, 0])
                 rotate_z(RAD90)
-                _corner(e2)
+                _corner(slice[0, 2])
                 rotate_z(RAD90)
-                _corner(e3)
+                _corner(slice[2, 2])
                 rotate_z(RAD90)
-                _corner(e4)
+                _corner(slice[2, 0])
+
+        def _green_quad_corner(slice):
+            with push_matrix():
+                _corner(slice[0, 2])
+                rotate_z(RAD90)
+                _corner(slice[0, 0])
+                rotate_z(RAD90)
+                _corner(slice[2, 0])
+                rotate_z(RAD90)
+                _corner(slice[2, 2])
 
         def cube():
             def frwd():
                 translate(0, 0, self.tile_size + self.gap_size)
 
-            def edgeside():
+            def edgeside(slice):
                 with push_matrix():
                     frwd()
-                    _quad_edge()
+                    _quad_edge(slice)
 
-            def edgeadd():
+            def edgeadd(slice):
                 with push_matrix():
                     frwd()
-                    _dual_edge()
+                    _dual_edge(slice)
 
-            def cornside():
+            def cornside(slice):
                 with push_matrix():
                     frwd()
-                    _quad_corner()
+                    _quad_corner(slice)
 
-            def mid():
+            def mid(specyfic):
                 with push_matrix():
                     frwd()
-                    _mid()
+                    _mid(specyfic)
 
             with push_matrix():
-                mid()
-                cornside()
+                with push_matrix():
+                    frwd()
+                    _mid(s3D[1, 2, 1])
+                    _blue_quad_corner(s3D[:, 2, :])
 
                 rotate_y(RAD90)
-                mid()
-                edgeside()
+                with push_matrix():
+                    frwd()
+                    _mid(s3D[1, 1, 0])
+                    _red_quad_edge(s3D[:, :, 0])
 
                 rotate_y(RAD90)
-                mid()
-                cornside()
+                with push_matrix():
+                    frwd()
+                    _mid(s3D[1, 0, 1])
+                    _green_quad_corner(s3D[:, 0, :])
 
                 rotate_y(RAD90)
-                mid()
-                edgeside()
+                with push_matrix():
+                    frwd()
+                    _mid(s3D[1, 1, 2])
+                    _pink_quad_edge(s3D[:, :, 2])
 
                 rotate_x(RAD90)
-                mid()
-                edgeadd()
+                mid(s3D[2, 1, 1])
+                edgeadd(s3D[2, :, 1])
 
                 rotate_x(RAD180)
-                mid()
-                edgeadd()
+                mid(s3D[0, 1, 1])
+                edgeadd(s3D[0, :, 1])
 
         cube()
 
@@ -325,7 +350,7 @@ class Zorder:
                 args = elem["A"]
                 func = elem["F"]
                 color = elem["C"]
-                fill(color)
+                renderer.fill_color = color
                 func(*args)
 
         cls.stack = []

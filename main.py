@@ -21,15 +21,12 @@ def draw():  # build a frame
 
     background(50)
     fill(20)
-    #cube.build()
-
+    cube.build(state3D)
 
     # square((mouse_x, mouse_y), 4)
 
-
-
-    cube.draw()
-    #square((0, 0, 200), 100, 'CENTER')
+    cube.draw(x=width/2, y=height/2, rot_x=rot_x, rot_y=rot_y, rot_z=rot_z)  # , x=width/2, y=height/2)
+    # square((0, 0, 200), 100, 'CENTER')
 
 
 def key_pressed():  # control the app.
