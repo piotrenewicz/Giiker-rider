@@ -1,6 +1,10 @@
 from p5 import *
 import time as t
-# import giiker_engine as engine
+import giiker_engine as engine
+
+engine.cube.intake("1234567833333333123456789abc000031334143")
+state3D = engine.cube.state3D
+
 
 RAD90 = 1.5707963267948966
 RAD180 = 3.141592653589793
@@ -29,49 +33,145 @@ class CubeDef:
 
     # also there needs to be a check if this system is to be used for disabling or enabling pieces of cube.
 
-    def build(self):
-        # as a first step let's draw the whole cube, then add more features.
-
-        self._draw_corner("WHITE", "GREEN", "BLUE")
-
-
-        # self._draw_corner("WHITE", "WHITE", "WHITE")
-        # self._draw_corner("WHITE", "WHITE", "WHITE")
-        # self._draw_corner("WHITE", "WHITE", "WHITE")
-        # self._draw_corner("WHITE", "WHITE", "WHITE")
-        # self._draw_corner("WHITE", "WHITE", "WHITE")
-        # self._draw_corner("WHITE", "WHITE", "WHITE")
-        # self._draw_corner("WHITE", "WHITE", "WHITE")
-        #
-        # self._draw_edge("WHITE", "WHITE")
-        # self._draw_edge("WHITE", "WHITE")
-        # self._draw_edge("WHITE", "WHITE")
-        # self._draw_edge("WHITE", "WHITE")
-        # self._draw_edge("WHITE", "WHITE")
-        # self._draw_edge("WHITE", "WHITE")
-        # self._draw_edge("WHITE", "WHITE")
-        # self._draw_edge("WHITE", "WHITE")
-        # self._draw_edge("WHITE", "WHITE")
-        # self._draw_edge("WHITE", "WHITE")
-        # self._draw_edge("WHITE", "WHITE")
-        # self._draw_edge("WHITE", "WHITE")
-        #
-        # self._draw_surface("WHITE")
-        # self._draw_surface("WHITE")
-        # self._draw_surface("WHITE")
-        # self._draw_surface("WHITE")
-        # self._draw_surface("WHITE")
-
-
-        #
-
-
-
-
     def draw(self):
         color_backup = renderer.fill_color
         Zorder.order()
         Zorder.flush()
+
+    def build(self):
+        def _is_allowed(side: tuple):
+            # self.sub_disable
+            # self.sub_config
+            #
+
+            return True
+
+        def _edge(edge_data: engine.cube.Edge, side: tuple):
+            if _is_allowed(side):
+                with push_matrix():
+                    translate(self.tile_size + self.gap_size, 0, 0)
+                    if edge_data.orientation == 0:
+                        self._draw_edge(edge_data.primary_side, edge_data.secondary_side)
+                    elif edge_data.orientation == 1:
+                        self._draw_edge(edge_data.secondary_side, edge_data.primary_side)
+
+        def _corner(corner_data: engine.cube.Corner, side: tuple):
+            if _is_allowed(side):
+                with push_matrix():
+                    translate(self.tile_size + self.gap_size, self.tile_size + self.gap_size)
+                    if corner_data.orientation == 3:
+                        self._draw_corner(corner_data.primary_side, corner_data.side_side, corner_data.top_side)  # MAIN SIDE TOP
+                    elif corner_data.orientation == 2:
+                        self._draw_corner(corner_data.top_side, corner_data.primary_side, corner_data.side_side)
+                    elif corner_data.orientation == 1:
+                        self._draw_corner(corner_data.side_side, corner_data.top_side, corner_data.primary_side)
+
+        def _dual_edge():
+            with push_matrix():
+                _edge()
+                rotate_z(RAD180)
+                _edge()
+
+        def _quad_edge():
+            with push_matrix():
+                _dual_edge()
+                rotate_z(RAD90)
+                _dual_edge()
+
+        def _quad_corner():
+            with push_matrix():
+                _corner()
+                rotate_z(RAD90)
+                _corner()
+                rotate_z(RAD90)
+                _corner()
+                rotate_z(RAD90)
+                _corner()
+
+        def cube():
+            def frwd():
+                translate(0, 0, self.tile_size + self.gap_size)
+
+            def edgeside():
+                with push_matrix():
+                    frwd()
+                    _quad_edge()
+
+            def edgeadd():
+                with push_matrix():
+                    frwd()
+                    _dual_edge()
+
+            def cornside():
+                with push_matrix():
+                    frwd()
+                    _quad_corner()
+
+            def mid():
+                with push_matrix():
+                    frwd()
+                    self._draw_surface("RED")
+
+            with push_matrix():
+                mid()
+                cornside()
+
+                rotate_y(RAD90)
+                mid()
+                edgeside()
+
+                rotate_y(RAD90)
+                mid()
+                cornside()
+
+                rotate_y(RAD90)
+                mid()
+                edgeside()
+
+                rotate_x(RAD90)
+                mid()
+                edgeadd()
+
+                rotate_x(RAD180)
+                mid()
+                edgeadd()
+
+        cube()
+
+        # as a first step let's draw the whole cube, then add more features.
+
+        #self._draw_corner("WHITE", "GREEN", "BLUE")
+
+
+        # self._draw_corner("WHITE", "WHITE", "WHITE")
+        # self._draw_corner("WHITE", "WHITE", "WHITE")
+        # self._draw_corner("WHITE", "WHITE", "WHITE")
+        # self._draw_corner("WHITE", "WHITE", "WHITE")
+        # self._draw_corner("WHITE", "WHITE", "WHITE")
+        # self._draw_corner("WHITE", "WHITE", "WHITE")
+        # self._draw_corner("WHITE", "WHITE", "WHITE")
+        #
+        # self._draw_edge("WHITE", "WHITE")
+        # self._draw_edge("WHITE", "WHITE")
+        # self._draw_edge("WHITE", "WHITE")
+        # self._draw_edge("WHITE", "WHITE")
+        # self._draw_edge("WHITE", "WHITE")
+        # self._draw_edge("WHITE", "WHITE")
+        # self._draw_edge("WHITE", "WHITE")
+        # self._draw_edge("WHITE", "WHITE")
+        # self._draw_edge("WHITE", "WHITE")
+        # self._draw_edge("WHITE", "WHITE")
+        # self._draw_edge("WHITE", "WHITE")
+        # self._draw_edge("WHITE", "WHITE")
+        #
+        # self._draw_surface("WHITE")
+        # self._draw_surface("WHITE")
+        # self._draw_surface("WHITE")
+        # self._draw_surface("WHITE")
+        # self._draw_surface("WHITE")
+
+
+        #
 
     color_region = dict()
     color_region["BLUE"] = Color(0, 0, 255)
@@ -91,13 +191,15 @@ class CubeDef:
         else:
             raise NameError("color_name must be one of: \n BLUE, YELLOW, RED, WHITE, PINK, GREEN")
 
-    def get_color_region(self, name: str):
+    def get_color_region(self, name):
+        if isinstance(name, int):
+            name = engine.cube.const.SIDE[name]
         if name in self.color_region:
             return self.color_region[name]
         else:
             raise NameError("color_name must be one of: \n BLUE, YELLOW, RED, WHITE, PINK, GREEN")
 
-    def _draw_surface(self, color1="WHITE"):
+    def _draw_surface(self, color1):
         with push_matrix():
             translate(0, 0, self.tile_size//2)
             Zorder.add(square, ((0, 0), self.tile_size, 'CENTER'), (0, 0, 0), self.get_color_region(color1))
@@ -106,13 +208,13 @@ class CubeDef:
     def _draw_edge(self, color1, color2):
         with push_matrix():
             self._draw_surface(color1)
-            rotate_x(RAD90)
+            rotate_y(RAD90)
             self._draw_surface(color2)
 
     def _draw_corner(self, color1, color2, color3):
         with push_matrix():
             self._draw_edge(color1, color2)
-            rotate_y(RAD90)
+            rotate_x(-RAD90)
             self._draw_surface(color3)
 
 
