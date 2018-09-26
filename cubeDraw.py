@@ -33,12 +33,22 @@ class CubeDef:
 
     # also there needs to be a check if this system is to be used for disabling or enabling pieces of cube.
 
-    def draw(self):
-        color_backup = renderer.fill_color
-        Zorder.order()
-        Zorder.flush()
+    def draw(self, x=width/2, y=height/2, z=0, rot_x=20, rot_y=20, rot_z=20):
+        with push_matrix():
+            translate(x, y, z)
+            rotate_x(radians(rot_x))
+            rotate_y(radians(rot_y))
+            rotate_z(radians(rot_z))
 
-    def build(self):
+            color_backup = renderer.fill_color
+            self.Buff.set()
+            Zorder.order()
+            Zorder.flush()
+            fill(color_backup)
+
+    def build(self, state3D: engine.cube.state3D):
+        self.Buff.cls()
+
         def _is_allowed(side: tuple):
             # self.sub_disable
             # self.sub_config
@@ -46,47 +56,58 @@ class CubeDef:
 
             return True
 
-        def _edge(edge_data: engine.cube.Edge, side: tuple):
+        def _mid(mid_data: tuple):
+            mid: engine.cube.Piece = mid_data[0]
+            side = mid_data[1]
+            if _is_allowed(side):
+                self._draw_surface(mid.primary_side)
+
+
+        def _edge(edge_data: tuple):
+            edge: engine.cube.Edge = edge_data[0]
+            side = edge_data[1]
             if _is_allowed(side):
                 with push_matrix():
                     translate(self.tile_size + self.gap_size, 0, 0)
-                    if edge_data.orientation == 0:
-                        self._draw_edge(edge_data.primary_side, edge_data.secondary_side)
-                    elif edge_data.orientation == 1:
-                        self._draw_edge(edge_data.secondary_side, edge_data.primary_side)
+                    if edge.orientation == 0:
+                        self._draw_edge(edge.primary_side, edge.secondary_side)
+                    elif edge.orientation == 1:
+                        self._draw_edge(edge.secondary_side, edge.primary_side)
 
-        def _corner(corner_data: engine.cube.Corner, side: tuple):
+        def _corner(corner_data: tuple):
+            corner: engine.cube.Corner = corner_data[0]
+            side = corner_data[1]
             if _is_allowed(side):
                 with push_matrix():
                     translate(self.tile_size + self.gap_size, self.tile_size + self.gap_size)
-                    if corner_data.orientation == 3:
-                        self._draw_corner(corner_data.primary_side, corner_data.side_side, corner_data.top_side)  # MAIN SIDE TOP
-                    elif corner_data.orientation == 2:
-                        self._draw_corner(corner_data.top_side, corner_data.primary_side, corner_data.side_side)
-                    elif corner_data.orientation == 1:
-                        self._draw_corner(corner_data.side_side, corner_data.top_side, corner_data.primary_side)
+                    if corner.orientation == 3:
+                        self._draw_corner(corner.primary_side, corner.side_side, corner.top_side)  # MAIN SIDE TOP
+                    elif corner.orientation == 2:
+                        self._draw_corner(corner.top_side, corner.primary_side, corner.side_side)
+                    elif corner.orientation == 1:
+                        self._draw_corner(corner.side_side, corner.top_side, corner.primary_side)
 
-        def _dual_edge():
+        def _dual_edge(e1: tuple, e2: tuple):
             with push_matrix():
-                _edge()
+                _edge(e1)
                 rotate_z(RAD180)
-                _edge()
+                _edge(e2)
 
-        def _quad_edge():
+        def _quad_edge(e1: tuple, e2: tuple, e3: tuple, e4: tuple):
             with push_matrix():
-                _dual_edge()
+                _dual_edge(e1, e3)
                 rotate_z(RAD90)
-                _dual_edge()
+                _dual_edge(e2, e4)
 
-        def _quad_corner():
+        def _quad_corner(e1: tuple, e2: tuple, e3: tuple, e4: tuple, ):
             with push_matrix():
-                _corner()
+                _corner(e1)
                 rotate_z(RAD90)
-                _corner()
+                _corner(e2)
                 rotate_z(RAD90)
-                _corner()
+                _corner(e3)
                 rotate_z(RAD90)
-                _corner()
+                _corner(e4)
 
         def cube():
             def frwd():
@@ -110,7 +131,7 @@ class CubeDef:
             def mid():
                 with push_matrix():
                     frwd()
-                    self._draw_surface("RED")
+                    _mid()
 
             with push_matrix():
                 mid()
@@ -202,7 +223,8 @@ class CubeDef:
     def _draw_surface(self, color1):
         with push_matrix():
             translate(0, 0, self.tile_size//2)
-            Zorder.add(square, ((0, 0), self.tile_size, 'CENTER'), (0, 0, 0), self.get_color_region(color1))
+            fill(self.get_color_region(color1))
+            self.Buff.add(square, ((0, 0), self.tile_size, 'CENTER'))
             # square((0, 0), self.tile_size, 'CENTER')
 
     def _draw_edge(self, color1, color2):
@@ -217,7 +239,29 @@ class CubeDef:
             rotate_x(-RAD90)
             self._draw_surface(color3)
 
+    class Buff:
+        stack = []
 
+        @classmethod
+        def add(cls, func, args):
+            dest = renderer.transform_matrix
+            col = renderer.fill_color
+            cls.stack.append({"F": func, "A": args, "C": col, "M": dest})
+
+        @classmethod
+        def set(cls):
+            for entry in cls.stack:
+                func = entry["F"]
+                args = entry["A"]
+                col = entry["C"]
+                dest = entry["M"]
+                with push_matrix():
+                    apply_matrix(dest)
+                    Zorder.add(func, args, col)
+
+        @classmethod
+        def cls(cls):
+            cls.stack = []
 #
 # BLUE
 # YELLOW
@@ -247,15 +291,12 @@ class Zorder:
     stack = []
 
     @classmethod
-    def add(cls, func, args, coords: tuple, color):
-        with push_matrix():
-            translate(*coords)
-
-            dest = renderer.transform_matrix
-            source = renderer.np.array([0, 0, 0, 1])
-            result = dest.dot(source)
-            realz = result[2]
-            Zorder.stack.append({"F": func, "A": args, "C": color, "M": dest, "Z": realz})
+    def add(cls, func, args, color):
+        dest = renderer.transform_matrix
+        source = renderer.np.array([0, 0, 0, 1])
+        result = dest.dot(source)
+        realz = result[2]
+        cls.stack.append({"F": func, "A": args, "C": color, "M": dest, "Z": realz})
 
     @classmethod
     def order(cls):
@@ -264,21 +305,21 @@ class Zorder:
         def find_next_elem():
             lowest = 9999999999999999999
             lowest_id = 0
-            for i, elem in enumerate(Zorder.stack):
+            for i, elem in enumerate(cls.stack):
                 if lowest > elem["Z"]:
                     lowest = elem["Z"]
                     lowest_id = i
             return lowest_id
 
-        while len(Zorder.stack) > 0:
+        while len(cls.stack) > 0:
             next = find_next_elem()
-            temp.append(Zorder.stack[next])
-            Zorder.stack.pop(next)
-        Zorder.stack = temp
+            temp.append(cls.stack[next])
+            cls.stack.pop(next)
+        cls.stack = temp
 
     @classmethod
     def flush(cls):
-        for elem in Zorder.stack:
+        for elem in cls.stack:
             with push_matrix():
                 apply_matrix(elem["M"])
                 args = elem["A"]
@@ -287,4 +328,4 @@ class Zorder:
                 fill(color)
                 func(*args)
 
-        Zorder.stack = []
+        cls.stack = []

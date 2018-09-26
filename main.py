@@ -21,14 +21,13 @@ def draw():  # build a frame
 
     background(50)
     fill(20)
-    square((mouse_x, mouse_y), 4)
-    rotate_x(radians(rot_x))
-    rotate_y(radians(rot_y))
-    rotate_z(radians(rot_z))
-    cube.build()
+    #cube.build()
 
-    reset_matrix()
-    translate(width/2, height/2)
+
+    # square((mouse_x, mouse_y), 4)
+
+
+
     cube.draw()
     #square((0, 0, 200), 100, 'CENTER')
 
