@@ -220,12 +220,13 @@ class CubeDef:
         #
 
     color_region = dict()
-    color_region["BLUE"] = Color(0, 0, 255)
-    color_region["YELLOW"] = Color(255, 255, 0)
-    color_region["RED"] = Color(255, 0, 0)
+    color_region["BLUE"] = Color(22.22142857, 99.814285, 173.4)
+    color_region["YELLOW"] = Color(236.785714, 214.56428, 32.421428)
+    color_region["RED"] = Color(255, 89.25, 34.242857)
     color_region["WHITE"] = Color(255, 255, 255)
-    color_region["PINK"] = Color(125, 100, 15)
-    color_region["GREEN"] = Color(0, 255, 0)
+    color_region["PINK"] = Color(253.5428571, 172.307142, 183.23571)
+    color_region["GREEN"] = Color(106.0071428, 205.457142, 154.8214285)
+
 
     def set_color_region(self, name: str, value):
         if value is not Color:
