@@ -36,7 +36,7 @@ class CubeDef:
     def draw(self, x, y, z=0, rot_x=20, rot_y=20, rot_z=20):
         with push_matrix():
             translate(x, y, z)
-            rotate_x(radians(rot_x))
+            rotate_x(radians(rot_x))  # fork with this to get rotation intuitive
             rotate_y(radians(rot_y))
             rotate_z(radians(rot_z))
 
@@ -62,7 +62,6 @@ class CubeDef:
             side = mid_data[1]
             if _is_allowed(side):
                 self._draw_surface(mid.primary_side)
-
 
         def _edge(edge_data: tuple):
             edge: engine.cube.Edge = edge_data[0]
